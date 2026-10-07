@@ -182,9 +182,81 @@
     .btn-action:active {
       transform: scale(0.98);
     }
+    #guidePill {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      background: rgba(15, 23, 42, 0.82);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 600;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+      cursor: pointer;
+    }
+    #wechatOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(10, 10, 15, 0.88);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: #ffffff;
+      padding: 24px 20px;
+    }
+    .overlay-arrow {
+      position: absolute;
+      top: 16px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+      animation: floatGuide 1.6s ease-in-out infinite;
+    }
+    @keyframes floatGuide {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .bridge-iframe {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      z-index: 50;
+      background: #ffffff;
+    }
   </style>
 </head>
 <body>
+
+  <div id="guidePill">
+    <span>在浏览器打开 ↗</span>
+  </div>
+
+  <div id="wechatOverlay">
+    <div class="overlay-arrow">
+      <svg style="width: 32px; height: 32px; color: #6366f1;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+      </svg>
+      <div style="font-size: 16px; font-weight: 700; color: #ffffff;">点击右上角【···】</div>
+      <div style="font-size: 13px; color: #cbd5e1;">选择【在浏览器中打开】即可完整浏览</div>
+    </div>
+    <div style="position: absolute; bottom: 40px; left: 0; right: 0; text-align: center;">
+      <button id="closeOverlayBtn" style="padding: 10px 28px; border-radius: 9999px; background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.25); color: #ffffff; font-size: 13px; font-weight: 600; cursor: pointer;">关闭提示</button>
+    </div>
+  </div>
 
   <div id="loadingMask">
     <div class="spinner-ring">
@@ -280,9 +352,45 @@
 
     const loadingMask = document.getElementById('loadingMask');
     const fallbackCard = document.getElementById('fallbackCard');
+    const guidePill = document.getElementById('guidePill');
+    const wechatOverlay = document.getElementById('wechatOverlay');
+    const closeOverlayBtn = document.getElementById('closeOverlayBtn');
+
+    if (guidePill && wechatOverlay) {
+      guidePill.addEventListener('click', () => {
+        wechatOverlay.style.display = 'block';
+      });
+      wechatOverlay.addEventListener('click', () => {
+        wechatOverlay.style.display = 'none';
+      });
+      if (closeOverlayBtn) {
+        closeOverlayBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          wechatOverlay.style.display = 'none';
+        });
+      }
+    }
 
     if (target && isAuthorizedTarget(target)) {
-      window.location.replace(target);
+      const ua = navigator.userAgent.toLowerCase();
+      const isTencent = ua.includes('micromessenger') || ua.includes('qq/');
+
+      if (isTencent) {
+        if (guidePill) guidePill.style.display = 'flex';
+        const frame = document.createElement('iframe');
+        frame.className = 'bridge-iframe';
+        frame.src = target;
+        frame.setAttribute('allow', 'fullscreen; clipboard-write; encrypted-media; camera; microphone');
+        frame.onload = () => {
+          loadingMask.style.display = 'none';
+        };
+        document.body.appendChild(frame);
+        setTimeout(() => {
+          loadingMask.style.display = 'none';
+        }, 1500);
+      } else {
+        window.location.replace(target);
+      }
     } else {
       loadingMask.style.display = 'none';
       fallbackCard.style.display = 'flex';

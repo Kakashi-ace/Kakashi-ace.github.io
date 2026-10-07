@@ -69,19 +69,7 @@
       0%, 100% { opacity: 0.6; }
       50% { opacity: 1; }
     }
-    #mainFrame {
-      position: fixed;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
-      border: none;
-      outline: none;
-      z-index: 10;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      background-color: #ffffff;
-      -webkit-overflow-scrolling: touch;
-    }
+
     #fallbackCard {
       display: none;
       position: fixed;
@@ -208,8 +196,6 @@
     <div class="loading-text">正在安全载入页面...</div>
   </div>
 
-  <iframe id="mainFrame" allow="clipboard-read; clipboard-write; fullscreen; accelerometer; autoplay" sandbox="allow-forms allow-modals allow-orientation-lock allow-pointer-lock allow-popups allow-popups-to-escape-sandbox allow-presentation allow-same-origin allow-scripts allow-top-navigation-by-user-activation allow-downloads"></iframe>
-
   <div id="fallbackCard">
     <div class="card-box">
       <div class="card-icon" id="cardIcon">
@@ -293,23 +279,10 @@
     }
 
     const loadingMask = document.getElementById('loadingMask');
-    const mainFrame = document.getElementById('mainFrame');
     const fallbackCard = document.getElementById('fallbackCard');
 
     if (target && isAuthorizedTarget(target)) {
-      mainFrame.src = target;
-      mainFrame.onload = function() {
-        mainFrame.style.opacity = '1';
-        setTimeout(() => {
-          loadingMask.style.opacity = '0';
-          loadingMask.style.visibility = 'hidden';
-        }, 150);
-      };
-      setTimeout(() => {
-        mainFrame.style.opacity = '1';
-        loadingMask.style.opacity = '0';
-        loadingMask.style.visibility = 'hidden';
-      }, 2500);
+      window.location.replace(target);
     } else {
       loadingMask.style.display = 'none';
       fallbackCard.style.display = 'flex';

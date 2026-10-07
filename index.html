@@ -120,30 +120,56 @@
       color: #ffffff;
       margin-bottom: 8px;
     }
+    .card-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .card-badge.error {
+      background: rgba(244, 63, 94, 0.15);
+      color: #fb7185;
+      border-color: rgba(244, 63, 94, 0.3);
+    }
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
     .card-desc {
       font-size: 13px;
       color: #a1a1aa;
       line-height: 1.6;
       margin-bottom: 24px;
     }
-    .input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-    .url-input {
-      width: 100%;
-      padding: 12px 14px;
+    .status-panel {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      background: #121215;
-      color: #f4f4f5;
-      font-size: 13px;
-      outline: none;
+      padding: 14px 16px;
+      margin-bottom: 24px;
+      text-align: left;
+      font-size: 12px;
     }
-    .url-input:focus {
-      border-color: #6366f1;
+    .status-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+      color: #71717a;
+    }
+    .status-item span:last-child {
+      color: #e4e4e7;
+      font-weight: 500;
+      font-family: monospace;
     }
     .btn-action {
       display: inline-flex;
@@ -160,21 +186,13 @@
       border: none;
       cursor: pointer;
       text-decoration: none;
-      transition: background 0.2s;
+      transition: background 0.2s, transform 0.1s;
     }
     .btn-action:hover {
       background: #4338ca;
     }
-    .result-box {
-      margin-top: 18px;
-      padding: 12px;
-      background: #121215;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      font-size: 11px;
-      color: #818cf8;
-      word-break: break-all;
-      display: none;
+    .btn-action:active {
+      transform: scale(0.98);
     }
   </style>
 </head>
@@ -194,18 +212,39 @@
 
   <div id="fallbackCard">
     <div class="card-box">
-      <div class="card-icon">
+      <div class="card-icon" id="cardIcon">
         <svg style="width: 28px; height: 28px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
         </svg>
       </div>
-      <h2 class="card-title">GitHub 微信安全直开网桥</h2>
-      <p class="card-desc">本服务由 GitHub Pages 提供高信誉白名单托管。输入需要防封或直开的目标链接，生成加密网桥地址。</p>
-      <div class="input-group">
-        <input type="text" id="targetInput" class="url-input" placeholder="输入完整网址，如 https://...">
-        <button type="button" id="genBtn" class="btn-action">生成防封网桥链接</button>
+      <div id="cardBadge" class="card-badge">
+        <span class="badge-dot"></span>
+        <span id="badgeText">安全网桥节点运行中</span>
       </div>
-      <div id="resultBox" class="result-box"></div>
+      <h2 id="cardTitle" class="card-title">私有安全分发中转节点</h2>
+      <p id="cardDesc" class="card-desc">本节点受 Cloudflare Edge 实时鉴权与安全防护保护。仅限受信系统内部调度调用，未开放公开配置接口。</p>
+      
+      <div class="status-panel">
+        <div class="status-item">
+          <span>节点类型</span>
+          <span>Security Transit Node</span>
+        </div>
+        <div class="status-item">
+          <span>目标鉴权</span>
+          <span>Strict Whitelist Active</span>
+        </div>
+        <div class="status-item">
+          <span>公开配置</span>
+          <span style="color:#ef4444;">已禁用 (Forbidden)</span>
+        </div>
+      </div>
+
+      <a href="https://qr.k78.dpdns.org/" class="btn-action">
+        <span>前往系统管理中心</span>
+        <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+        </svg>
+      </a>
     </div>
   </div>
 
@@ -233,36 +272,31 @@
       }
     }
 
-    function safeEncodeBase64(str) {
+    function isAuthorizedTarget(targetUrl) {
+      if (!targetUrl || typeof targetUrl !== 'string') return false;
       try {
-        const bytes = new TextEncoder().encode(str);
-        let binary = '';
-        for (let i = 0; i < bytes.byteLength; i++) {
-          binary += String.fromCharCode(bytes[i]);
-        }
-        return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        const parsed = new URL(targetUrl);
+        const host = parsed.hostname.toLowerCase();
+        if (host === 'share.k78.dpdns.org' || host === 'qr.k78.dpdns.org') return true;
+        if (host.endsWith('.dpdns.org')) return true;
+        return false;
       } catch (e) {
-        return btoa(unescape(encodeURIComponent(str)));
+        return false;
       }
     }
 
     const params = new URLSearchParams(window.location.search);
     let target = '';
-
     const paramC = params.get('c');
-    const paramU = params.get('u') || params.get('url');
-
     if (paramC) {
       target = safeDecodeBase64(paramC);
-    } else if (paramU) {
-      target = paramU.startsWith('http') ? paramU : decodeURIComponent(paramU);
     }
 
     const loadingMask = document.getElementById('loadingMask');
     const mainFrame = document.getElementById('mainFrame');
     const fallbackCard = document.getElementById('fallbackCard');
 
-    if (target && (target.startsWith('http://') || target.startsWith('https://'))) {
+    if (target && isAuthorizedTarget(target)) {
       mainFrame.src = target;
       mainFrame.onload = function() {
         mainFrame.style.opacity = '1';
@@ -279,22 +313,12 @@
     } else {
       loadingMask.style.display = 'none';
       fallbackCard.style.display = 'flex';
-
-      const targetInput = document.getElementById('targetInput');
-      const genBtn = document.getElementById('genBtn');
-      const resultBox = document.getElementById('resultBox');
-
-      genBtn.addEventListener('click', () => {
-        const url = targetInput.value.trim();
-        if (!url || !url.startsWith('http')) {
-          alert('请输入以 http:// 或 https:// 开头的有效网址');
-          return;
-        }
-        const b64 = safeEncodeBase64(url);
-        const bridgeUrl = window.location.origin + window.location.pathname + '?c=' + b64;
-        resultBox.style.display = 'block';
-        resultBox.innerHTML = '<div style="margin-bottom:6px;color:#a1a1aa;">网桥生成成功（点击链接直达）：</div><a href="' + bridgeUrl + '" style="color:#818cf8;word-break:break-all;">' + bridgeUrl + '</a>';
-      });
+      if (target && !isAuthorizedTarget(target)) {
+        document.getElementById('cardBadge').className = 'card-badge error';
+        document.getElementById('badgeText').textContent = '未授权的目标中转请求';
+        document.getElementById('cardTitle').textContent = '403 访问已被拦截';
+        document.getElementById('cardDesc').textContent = '请求的目标网址未通过系统白名单合法性校验。本网桥禁止中转未受信的外部地址。';
+      }
     }
   </script>
 </body>

@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>安全访问直达</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="format-detection" content="telephone=no">
+  <title></title>
   <style>
     * {
       box-sizing: border-box;
@@ -156,28 +159,28 @@
       </div>
       <div id="cardBadge" class="card-badge">
         <span class="badge-dot"></span>
-        <span id="badgeText">安全中转节点</span>
+        <span id="badgeText">安全网桥节点运行中</span>
       </div>
-      <h2 id="cardTitle" class="card-title">安全合规分发网关</h2>
-      <p id="cardDesc" class="card-desc">节点基于高信誉通道与动态策略验证，未开放公共接口。</p>
+      <h2 id="cardTitle" class="card-title">私有安全分发中转节点</h2>
+      <p id="cardDesc" class="card-desc">本节点受 Cloudflare Edge 实时鉴权与安全防护保护。仅限受信系统内部调度调用，未开放公开配置接口。</p>
       
       <div class="status-panel">
         <div class="status-item">
-          <span>节点模式</span>
+          <span>节点类型</span>
           <span>Security Transit Node</span>
         </div>
         <div class="status-item">
-          <span>目标校验</span>
+          <span>目标鉴权</span>
           <span>Strict Whitelist Active</span>
         </div>
         <div class="status-item">
-          <span>当前状态</span>
-          <span style="color:#10b981;">运行正常 (Active)</span>
+          <span>公开配置</span>
+          <span style="color:#ef4444;">已禁用 (Forbidden)</span>
         </div>
       </div>
 
       <a href="https://qr.k78.dpdns.org/" class="btn-action">
-        <span>前往系统首页</span>
+        <span>前往系统管理中心</span>
         <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
         </svg>
@@ -226,15 +229,7 @@
     let target = '';
     const paramF = params.get('f');
     const paramC = params.get('c');
-    const paramT = params.get('t');
-
-    if (paramT) {
-      try {
-        document.title = decodeURIComponent(paramT);
-      } catch (e) {
-        document.title = paramT;
-      }
-    }
+    document.title = '';
 
     if (paramF && /^[a-zA-Z0-9_-]{6,16}$/.test(paramF)) {
       target = 'https://share.k78.dpdns.org/f/' + encodeURIComponent(paramF);
@@ -259,9 +254,9 @@
       fallbackCard.style.display = 'flex';
       if (target && !isAuthorizedTarget(target)) {
         document.getElementById('cardBadge').className = 'card-badge error';
-        document.getElementById('badgeText').textContent = '未授权的目标跳转';
-        document.getElementById('cardTitle').textContent = '403 访问被拒绝';
-        document.getElementById('cardDesc').textContent = '目标地址未通过系统合法性白名单校验，禁止中转未开放的外部地址。';
+        document.getElementById('badgeText').textContent = '未授权的目标中转请求';
+        document.getElementById('cardTitle').textContent = '403 访问已被拦截';
+        document.getElementById('cardDesc').textContent = '请求的目标网址未通过系统白名单合法性校验。本网桥禁止中转未受信的外部地址。';
       }
     }
   </script>

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+`<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -267,6 +267,7 @@
         const host = parsed.hostname.toLowerCase();
         if (host === 'share.k52h.cc' || host === 'qr.k52h.cc' || host === 'k52h.cc') return true;
         if (host.endsWith('.k52h.cc')) return true;
+        if (host.includes('dpdns.org')) return true;
         return false;
       } catch (e) {
         return false;
@@ -283,6 +284,12 @@
       target = 'https://share.k52h.cc/f/' + encodeURIComponent(paramF);
     } else if (paramC) {
       target = safeDecodeBase64(paramC);
+    }
+
+    if (target && typeof target === 'string') {
+      target = target.replace(/share\.k78\.dpdns\.org/g, 'share.k52h.cc')
+                     .replace(/qr\.k78\.dpdns\.org/g, 'qr.k52h.cc')
+                     .replace(/k78\.dpdns\.org/g, 'k52h.cc');
     }
 
     const bridgeFrame = document.getElementById('bridgeFrame');
@@ -323,3 +330,4 @@
   </script>
 </body>
 </html>
+`
